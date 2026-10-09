@@ -426,7 +426,10 @@ class SalasView(AdminRequiredMixin, View):
 
 class SalaNuevaView(AdminRequiredMixin, View):
     def get(self, request):
-        return render(request, "reclamaciones/config/sala_form.html", {"form": SalaForm()})
+        initial = {}
+        if request.GET.get("empresa"):
+            initial["empresa"] = request.GET["empresa"]
+        return render(request, "reclamaciones/config/sala_form.html", {"form": SalaForm(initial=initial)})
 
     def post(self, request):
         form = SalaForm(request.POST)

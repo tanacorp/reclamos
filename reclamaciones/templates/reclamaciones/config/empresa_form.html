@@ -3,17 +3,19 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>{% if obj %}Editar empresa: {{ obj.nombre_comercial }}{% else %}Nueva empresa{% endif %}</h1>
+    <h1>{% if obj %}{{ obj.nombre_comercial }}{% else %}Nueva empresa{% endif %}</h1>
     <p class="text-muted"><a href="{% url 'reclamaciones:empresas' %}">← Volver a empresas</a></p>
   </div>
 </div>
 
-<form method="post" class="card form-card">
+<form method="post">
   {% csrf_token %}
-  {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
 
-  <fieldset class="form-section">
-    <legend>Datos de la empresa</legend>
+  <div class="card form-card" style="max-width:800px;margin-bottom:20px">
+    <div class="dash-card-header" style="margin-bottom:20px">
+      <h2><i class="bi bi-building"></i> Datos de la empresa</h2>
+    </div>
+    {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
     <div class="grid--2">
       {% include "reclamaciones/_campo.html" with field=form.razon_social %}
       {% include "reclamaciones/_campo.html" with field=form.nombre_comercial %}
@@ -21,11 +23,16 @@
       {% include "reclamaciones/_campo.html" with field=form.domicilio_fiscal %}
       {% include "reclamaciones/_campo.html" with field=form.plazo_dias_habiles %}
     </div>
-  </fieldset>
+  </div>
 
-  <fieldset class="form-section">
-    <legend>Configuración SMTP</legend>
-    <p class="text-muted" style="font-size:.85rem;margin-bottom:1rem">Dejar vacío para usar el backend por defecto (consola en desarrollo).</p>
+  <div class="card form-card" style="max-width:800px;margin-bottom:20px">
+    <div class="dash-card-header" style="margin-bottom:20px">
+      <h2><i class="bi bi-envelope-at"></i> Correo saliente (SMTP)</h2>
+    </div>
+    <div class="cfg-smtp-note">
+      <i class="bi bi-info-circle"></i>
+      Si el servidor SMTP está vacío, los correos se imprimen en la consola del servidor (modo desarrollo).
+    </div>
     <div class="grid--2">
       {% include "reclamaciones/_campo.html" with field=form.email_host %}
       {% include "reclamaciones/_campo.html" with field=form.email_port %}
@@ -34,17 +41,57 @@
       {% include "reclamaciones/_campo.html" with field=form.email_use_tls %}
       {% include "reclamaciones/_campo.html" with field=form.email_from %}
     </div>
-  </fieldset>
+  </div>
 
-  <div class="form-actions">
+  <div class="form-actions" style="max-width:800px">
     <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
     <a href="{% url 'reclamaciones:empresas' %}" class="btn btn--outline">Cancelar</a>
-    {% if obj %}
-    <form method="post" action="{% url 'reclamaciones:empresa_test_correo' obj.pk %}" style="display:inline">
-      {% csrf_token %}
-      <button type="submit" class="btn btn--outline"><i class="bi bi-envelope"></i> Enviar correo de prueba</button>
-    </form>
-    {% endif %}
   </div>
 </form>
+
+{% if obj %}
+<div class="card form-card" style="max-width:800px;margin-top:20px">
+  <div class="dash-card-header" style="margin-bottom:16px">
+    <h2><i class="bi bi-send"></i> Prueba de correo</h2>
+  </div>
+  <p class="text-muted">Envía un correo de prueba usando la configuración SMTP de esta empresa a <strong>{{ request.user.email|default:"(sin correo en tu usuario)" }}</strong>.</p>
+  {% if request.user.email %}
+    <form method="post" action="{% url 'reclamaciones:empresa_test_correo' obj.pk %}">
+      {% csrf_token %}
+      <button class="btn btn--outline" type="submit"><i class="bi bi-envelope-check"></i> Enviar correo de prueba</button>
+    </form>
+  {% else %}
+    <p style="color:#dc2626;font-size:13px">Tu usuario no tiene correo. Edítalo en <a href="{% url 'reclamaciones:usuario_editar' request.user.pk %}">Usuarios</a>.</p>
+  {% endif %}
+</div>
+
+<div class="card form-card" style="max-width:800px;margin-top:20px">
+  <div class="dash-card-header" style="margin-bottom:16px">
+    <h2><i class="bi bi-building"></i> Salas de esta empresa</h2>
+    <a href="{% url 'reclamaciones:sala_nueva' %}?empresa={{ obj.pk }}" class="btn btn--outline btn--sm"><i class="bi bi-plus-lg"></i> Nueva sala</a>
+  </div>
+  {% if obj.salas.exists %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nombre</th><th>Código</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        {% for s in obj.salas.all %}
+        <tr>
+          <td>{{ s.nombre }}</td>
+          <td><code>{{ s.codigo }}</code></td>
+          <td>{% if s.activa %}<span class="badge badge--success">Activa</span>{% else %}<span class="badge badge--muted">Inactiva</span>{% endif %}</td>
+          <td class="td-actions">
+            <a href="{% url 'reclamaciones:sala_qr' s.pk %}" class="btn btn--outline btn--sm" title="QR"><i class="bi bi-qr-code"></i></a>
+            <a href="{% url 'reclamaciones:sala_editar' s.pk %}" class="btn btn--outline btn--sm"><i class="bi bi-pencil"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">Esta empresa aún no tiene salas.</p>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}

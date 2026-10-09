@@ -3,6 +3,10 @@
 {% block content %}
 
 <div class="hoja-header">
+  <div class="hoja-empresa">
+    <strong>{{ EMPRESA.razon_social }}</strong>
+    <span>RUC {{ EMPRESA.ruc }} &nbsp;·&nbsp; {{ EMPRESA.domicilio_fiscal }}</span>
+  </div>
   <div class="hoja-header__sala">
     <span class="hoja-header__sala-icon"><i class="bi bi-building"></i></span>
     <div>

@@ -12,6 +12,7 @@
   {% csrf_token %}
   {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
   <div class="grid--2">
+    {% include "reclamaciones/_campo.html" with field=form.empresa %}
     {% include "reclamaciones/_campo.html" with field=form.nombre %}
     {% include "reclamaciones/_campo.html" with field=form.codigo %}
     {% include "reclamaciones/_campo.html" with field=form.direccion %}

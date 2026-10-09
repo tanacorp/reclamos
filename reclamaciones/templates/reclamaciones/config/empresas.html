@@ -4,7 +4,7 @@
 <div class="page-header">
   <div>
     <h1>Empresas</h1>
-    <p class="text-muted">Gestione las empresas operadoras y su configuración SMTP.</p>
+    <p class="text-muted">Cada empresa tiene sus propias salas, SMTP y plazo de respuesta.</p>
   </div>
   <a href="{% url 'reclamaciones:empresa_nueva' %}" class="btn btn--primary"><i class="bi bi-plus-lg"></i> Nueva empresa</a>
 </div>
@@ -12,32 +12,33 @@
 <div class="table-wrap">
   <table>
     <thead>
-      <tr><th>Nombre comercial</th><th>RUC</th><th>Razón social</th><th>Salas</th><th>SMTP</th><th></th></tr>
+      <tr><th>Razón social</th><th>RUC</th><th>Nombre comercial</th><th>Salas</th><th>Plazo</th><th>SMTP</th><th></th></tr>
     </thead>
     <tbody>
       {% for e in items %}
       <tr>
-        <td><strong>{{ e.nombre_comercial }}</strong></td>
+        <td><strong>{{ e.razon_social }}</strong></td>
         <td><code>{{ e.ruc }}</code></td>
-        <td>{{ e.razon_social }}</td>
-        <td>{{ e.total_salas }}</td>
+        <td>{{ e.nombre_comercial }}</td>
+        <td style="text-align:center"><span class="badge badge--info">{{ e.total_salas }}</span></td>
+        <td>{{ e.plazo_dias_habiles }} días hábiles</td>
         <td>
           {% if e.email_host %}
-            <span class="badge badge--success">Configurado</span>
+            <span class="badge badge--success"><i class="bi bi-check-lg"></i> Configurado</span>
           {% else %}
             <span class="badge badge--muted">Consola</span>
           {% endif %}
         </td>
         <td class="td-actions">
           <a href="{% url 'reclamaciones:empresa_editar' e.pk %}" class="btn btn--outline btn--sm"><i class="bi bi-pencil"></i> Editar</a>
-          <form method="post" action="{% url 'reclamaciones:empresa_eliminar' e.pk %}" onsubmit="return confirm('¿Eliminar empresa {{ e.nombre_comercial }}?')">
+          <form method="post" action="{% url 'reclamaciones:empresa_eliminar' e.pk %}" onsubmit="return confirm('¿Eliminar {{ e.nombre_comercial }}? Solo es posible si no tiene salas.')">
             {% csrf_token %}
             <button class="btn btn--danger btn--sm" type="submit"><i class="bi bi-trash"></i></button>
           </form>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" class="td-empty">No hay empresas registradas.</td></tr>
+      <tr><td colspan="7" class="td-empty"><i class="bi bi-building"></i><br>No hay empresas registradas.</td></tr>
       {% endfor %}
     </tbody>
   </table>
