@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
             "(razon_social, nombre_comercial, ruc, domicilio_fiscal, plazo_dias_habiles, "
             "email_host, email_port, email_host_user, email_host_password, email_use_tls, email_from) "
             "VALUES ('EMPRESA POR DEFECTO S.A.C.', 'Empresa por defecto', '00000000000', "
-            "'Actualizar en panel', 15, '', 587, '', '', 1, 'reclamos@example.com')",
+            "'Actualizar en panel', 15, '', 587, '', '', TRUE, 'reclamos@example.com')",
             reverse_sql="DELETE FROM reclamaciones_empresa WHERE ruc='00000000000'",
         ),
         migrations.AddField(
