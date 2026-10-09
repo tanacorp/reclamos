@@ -1,0 +1,19 @@
+Estimado(a) {{ reclamo.nombre_completo }}:
+
+Hemos registrado su hoja de reclamación en {{ reclamo.sala.nombre }}.
+
+Código: {{ reclamo.codigo }}
+Fecha de registro: {{ reclamo.fecha_registro|date:"d/m/Y H:i" }}
+Tipo: {{ reclamo.get_tipo_display }}
+Fecha límite de respuesta: {{ reclamo.fecha_limite|date:"d/m/Y" }}
+
+Detalle registrado:
+{{ reclamo.detalle }}
+
+Pedido del consumidor:
+{{ reclamo.pedido }}
+
+Conserve el código y su número de documento para consultar el estado de su reclamo.
+
+{{ EMPRESA.razon_social }}
+RUC {{ EMPRESA.ruc }}

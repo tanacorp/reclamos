@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Constancia {{ reclamo.codigo }}{% endblock %}
+{% block content %}
+
+<div class="constancia-wrap">
+
+  <div class="constancia-success noprint">
+    <div class="constancia-success__icon"><i class="bi bi-check-circle-fill"></i></div>
+    <div>
+      <h2>¡Reclamo registrado correctamente!</h2>
+      <p>Enviamos una copia de esta constancia a <strong>{{ reclamo.email }}</strong>. Guarde el código para consultar el estado.</p>
+    </div>
+  </div>
+
+  <div class="ticket">
+    <div class="ticket__header">
+      <div>
+        <div class="ticket__label">Código de constancia</div>
+        <div class="ticket__code">{{ reclamo.codigo }}</div>
+      </div>
+      <div class="ticket__meta">
+        <span><i class="bi bi-calendar3"></i> {{ reclamo.fecha_registro|date:"d/m/Y H:i" }}</span>
+        <span><i class="bi bi-building"></i> {{ reclamo.sala.nombre }}</span>
+      </div>
+    </div>
+
+    <div class="ticket__notch"></div>
+
+    <div class="ticket__body">
+      <div class="ticket__section">
+        <div class="ticket__section-title"><i class="bi bi-person"></i> Consumidor</div>
+        <div class="ticket__rows">
+          <div class="ticket__row"><span>Nombre</span><span>{{ reclamo.nombre_completo }}</span></div>
+          <div class="ticket__row"><span>Documento</span><span>{{ reclamo.get_tipo_documento_display }} {{ reclamo.numero_documento }}</span></div>
+          <div class="ticket__row"><span>Correo</span><span>{{ reclamo.email }}</span></div>
+          {% if reclamo.telefono %}<div class="ticket__row"><span>Teléfono</span><span>{{ reclamo.telefono }}</span></div>{% endif %}
+        </div>
+      </div>
+
+      <div class="ticket__section">
+        <div class="ticket__section-title"><i class="bi bi-box-seam"></i> Bien reclamado</div>
+        <div class="ticket__rows">
+          <div class="ticket__row"><span>Tipo</span><span>{{ reclamo.get_tipo_display }}</span></div>
+          <div class="ticket__row"><span>Bien</span><span>{{ reclamo.get_tipo_bien_display }}: {{ reclamo.descripcion_bien }}</span></div>
+          {% if reclamo.monto_reclamado %}<div class="ticket__row"><span>Monto</span><span>S/ {{ reclamo.monto_reclamado }}</span></div>{% endif %}
+        </div>
+      </div>
+
+      <div class="ticket__section">
+        <div class="ticket__section-title"><i class="bi bi-chat-left-text"></i> Detalle</div>
+        <p class="ticket__text">{{ reclamo.detalle }}</p>
+        <div class="ticket__section-title" style="margin-top:12px"><i class="bi bi-check2-square"></i> Pedido del consumidor</div>
+        <p class="ticket__text">{{ reclamo.pedido }}</p>
+      </div>
+
+      <div class="ticket__deadline">
+        <i class="bi bi-clock"></i>
+        Fecha límite de respuesta: <strong>{{ reclamo.fecha_limite|date:"d/m/Y" }}</strong>
+      </div>
+    </div>
+
+    <div class="ticket__footer">
+      <p>Conserve este código junto con su número de documento para consultar el estado de su reclamo en cualquier momento.</p>
+    </div>
+  </div>
+
+  <div class="constancia-actions noprint">
+    <button class="btn btn--outline" onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
+    <a class="btn btn--primary" href="{% url 'reclamaciones:consulta' %}"><i class="bi bi-house"></i> Volver al inicio</a>
+  </div>
+
+</div>
+{% endblock %}

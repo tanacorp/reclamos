@@ -1,0 +1,20 @@
+{% extends "base_panel.html" %}
+{% block title %}{% if obj %}Editar feriado{% else %}Nuevo feriado{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if obj %}Editar feriado{% else %}Nuevo feriado{% endif %}</h1>
+    <p class="text-muted"><a href="{% url 'reclamaciones:feriados' %}">← Volver a feriados</a></p>
+  </div>
+</div>
+<form method="post" class="card form-card">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
+  {% include "reclamaciones/_campo.html" with field=form.fecha %}
+  {% include "reclamaciones/_campo.html" with field=form.descripcion %}
+  <div class="form-actions">
+    <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+    <a href="{% url 'reclamaciones:feriados' %}" class="btn btn--outline">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

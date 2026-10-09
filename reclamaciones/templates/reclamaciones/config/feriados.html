@@ -1,0 +1,34 @@
+{% extends "base_panel.html" %}
+{% block title %}Feriados{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Feriados</h1>
+    <p class="text-muted">Días no laborables para el cómputo del plazo de respuesta.</p>
+  </div>
+  <a href="{% url 'reclamaciones:feriado_nuevo' %}" class="btn btn--primary"><i class="bi bi-plus-lg"></i> Nuevo feriado</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Fecha</th><th>Descripción</th><th></th></tr></thead>
+    <tbody>
+      {% for f in items %}
+      <tr>
+        <td>{{ f.fecha|date:"d/m/Y" }}</td>
+        <td>{{ f.descripcion|default:"—" }}</td>
+        <td class="td-actions">
+          <a href="{% url 'reclamaciones:feriado_editar' f.pk %}" class="btn btn--outline btn--sm"><i class="bi bi-pencil"></i></a>
+          <form method="post" action="{% url 'reclamaciones:feriado_eliminar' f.pk %}" onsubmit="return confirm('¿Eliminar este feriado?')">
+            {% csrf_token %}
+            <button class="btn btn--danger btn--sm" type="submit"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" class="td-empty">No hay feriados registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

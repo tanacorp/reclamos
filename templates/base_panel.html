@@ -1,0 +1,177 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <title>{% block title %}Panel{% endblock %} · {{ EMPRESA.nombre_comercial }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+</head>
+<body class="panel-layout">
+
+  <header class="pnav">
+    <div class="pnav__inner">
+
+      <!-- Brand -->
+      <a class="pnav__brand" href="{% url 'reclamaciones:panel' %}">
+        <span class="pnav__brand-icon"><i class="bi bi-journal-bookmark-fill"></i></span>
+        <span class="pnav__brand-text">
+          <strong>{{ EMPRESA.nombre_comercial }}</strong>
+          <small>Panel</small>
+        </span>
+      </a>
+
+      <!-- Nav links (desktop) -->
+      <nav class="pnav__links" id="pnav-links">
+        <a href="{% url 'reclamaciones:panel' %}" class="{% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{% url 'reclamaciones:lista' %}" class="{% if request.resolver_match.url_name == 'lista' or request.resolver_match.url_name == 'detalle' %}active{% endif %}">
+          <i class="bi bi-inbox"></i> Reclamos
+        </a>
+
+        <!-- Dropdown Configuración -->
+        <div class="pnav__dropdown">
+          <button class="pnav__drop-btn {% if request.resolver_match.url_name in 'salas,sala_nueva,sala_editar,sala_qr,feriados,feriado_nuevo,feriado_editar,usuarios,usuario_nuevo,usuario_editar,configuracion,test_correo' %}active{% endif %}" type="button" data-dropdown>
+            <i class="bi bi-sliders"></i> Configuración <i class="bi bi-chevron-down pnav__chevron"></i>
+          </button>
+          <div class="pnav__drop-menu" data-dropdown-menu>
+            <a href="{% url 'reclamaciones:salas' %}" class="{% if 'sala' in request.resolver_match.url_name %}active{% endif %}">
+              <i class="bi bi-building"></i> Salas de juego
+            </a>
+            <a href="{% url 'reclamaciones:feriados' %}" class="{% if 'feriado' in request.resolver_match.url_name %}active{% endif %}">
+              <i class="bi bi-calendar-x"></i> Feriados
+            </a>
+            <a href="{% url 'reclamaciones:usuarios' %}" class="{% if 'usuario' in request.resolver_match.url_name %}active{% endif %}">
+              <i class="bi bi-people"></i> Usuarios
+            </a>
+            <div class="pnav__drop-divider"></div>
+            <a href="{% url 'reclamaciones:configuracion' %}" class="{% if request.resolver_match.url_name == 'configuracion' or request.resolver_match.url_name == 'test_correo' %}active{% endif %}">
+              <i class="bi bi-gear"></i> General / Correo
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Right side -->
+      <div class="pnav__right">
+        <a href="{% url 'reclamaciones:consulta' %}" target="_blank" rel="noopener" class="pnav__icon-btn" title="Ver sitio público">
+          <i class="bi bi-globe2"></i>
+        </a>
+
+        <button class="theme-toggle" id="theme-toggle" title="Cambiar tema" type="button">
+          <i class="bi bi-sun-fill" id="theme-icon"></i>
+        </button>
+
+        <!-- User dropdown -->
+        <div class="pnav__dropdown">
+          <button class="pnav__user-btn" type="button" data-dropdown>
+            <span class="pnav__avatar">{{ request.user.get_username|slice:":1"|upper }}</span>
+            <span class="pnav__username">{{ request.user.get_full_name|default:request.user.get_username }}</span>
+            <i class="bi bi-chevron-down pnav__chevron"></i>
+          </button>
+          <div class="pnav__drop-menu pnav__drop-menu--right" data-dropdown-menu>
+            <span class="pnav__drop-header">
+              {{ request.user.get_full_name|default:request.user.get_username }}<br>
+              <small>{% if request.user.is_superuser %}Administrador{% else %}Personal{% endif %}</small>
+            </span>
+            <div class="pnav__drop-divider"></div>
+            <a href="{% url 'reclamaciones:usuario_editar' request.user.pk %}">
+              <i class="bi bi-person"></i> Mi perfil
+            </a>
+            <div class="pnav__drop-divider"></div>
+            <form method="post" action="{% url 'reclamaciones:logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="pnav__drop-logout">
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Hamburger (mobile) -->
+        <button class="pnav__hamburger" type="button" aria-label="Menú" data-hamburger>
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="pnav__mobile" id="pnav-mobile" hidden>
+      <a href="{% url 'reclamaciones:panel' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="{% url 'reclamaciones:lista' %}"><i class="bi bi-inbox"></i> Reclamos</a>
+      <span class="pnav__mobile-section">Configuración</span>
+      <a href="{% url 'reclamaciones:salas' %}"><i class="bi bi-building"></i> Salas de juego</a>
+      <a href="{% url 'reclamaciones:feriados' %}"><i class="bi bi-calendar-x"></i> Feriados</a>
+      <a href="{% url 'reclamaciones:usuarios' %}"><i class="bi bi-people"></i> Usuarios</a>
+      <a href="{% url 'reclamaciones:configuracion' %}"><i class="bi bi-gear"></i> General / Correo</a>
+      <span class="pnav__mobile-section">Cuenta</span>
+      <a href="{% url 'reclamaciones:consulta' %}" target="_blank"><i class="bi bi-globe2"></i> Ver sitio público</a>
+      <form method="post" action="{% url 'reclamaciones:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="pnav__mobile-logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
+      </form>
+    </div>
+  </header>
+
+  <main class="panel-main">
+    {% if messages %}
+      <div class="alerts">
+        {% for m in messages %}
+          <div class="alert alert--{{ m.tags }}" role="alert">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>{{ m }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    // Tema claro/oscuro
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const saved = localStorage.getItem('panel-theme') || 'dark';
+    function applyTheme(t) {
+      root.classList.toggle('light', t === 'light');
+      themeIcon.className = t === 'light' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+      themeBtn.title = t === 'light' ? 'Cambiar a oscuro' : 'Cambiar a claro';
+    }
+    applyTheme(saved);
+    themeBtn.addEventListener('click', () => {
+      const next = root.classList.contains('light') ? 'dark' : 'light';
+      localStorage.setItem('panel-theme', next);
+      applyTheme(next);
+    });
+
+    // Hamburger mobile
+    const hamburger = document.querySelector('[data-hamburger]');
+    const mobileMenu = document.getElementById('pnav-mobile');
+    hamburger?.addEventListener('click', () => {
+      mobileMenu.hidden = !mobileMenu.hidden;
+      hamburger.querySelector('i').className = mobileMenu.hidden ? 'bi bi-list' : 'bi bi-x-lg';
+    });
+
+    // Dropdowns
+    document.querySelectorAll('[data-dropdown]').forEach(btn => {
+      const menu = btn.nextElementSibling;
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const isOpen = menu.classList.toggle('is-open');
+        btn.querySelector('.pnav__chevron')?.classList.toggle('rotated', isOpen);
+      });
+    });
+    document.addEventListener('click', () => {
+      document.querySelectorAll('[data-dropdown-menu]').forEach(m => m.classList.remove('is-open'));
+      document.querySelectorAll('.pnav__chevron').forEach(c => c.classList.remove('rotated'));
+    });
+  </script>
+</body>
+</html>

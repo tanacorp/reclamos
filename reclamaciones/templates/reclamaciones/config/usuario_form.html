@@ -1,0 +1,28 @@
+{% extends "base_panel.html" %}
+{% block title %}{% if obj %}Editar usuario{% else %}Nuevo usuario{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if obj %}Editar usuario: {{ obj.username }}{% else %}Nuevo usuario{% endif %}</h1>
+    <p class="text-muted"><a href="{% url 'reclamaciones:usuarios' %}">← Volver a usuarios</a></p>
+  </div>
+</div>
+<form method="post" class="card form-card">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="grid--2">
+    {% include "reclamaciones/_campo.html" with field=form.username %}
+    {% include "reclamaciones/_campo.html" with field=form.email %}
+    {% include "reclamaciones/_campo.html" with field=form.first_name %}
+    {% include "reclamaciones/_campo.html" with field=form.last_name %}
+    {% include "reclamaciones/_campo.html" with field=form.password1 %}
+    {% include "reclamaciones/_campo.html" with field=form.password2 %}
+    {% include "reclamaciones/_campo.html" with field=form.is_staff %}
+    {% include "reclamaciones/_campo.html" with field=form.is_active %}
+  </div>
+  <div class="form-actions">
+    <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+    <a href="{% url 'reclamaciones:usuarios' %}" class="btn btn--outline">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

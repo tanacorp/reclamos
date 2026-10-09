@@ -1,0 +1,150 @@
+{% extends "base_panel.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="text-muted">Resumen general de hojas de reclamación.</p>
+  </div>
+  <a href="{% url 'reclamaciones:lista' %}" class="btn btn--primary"><i class="bi bi-list-check"></i> Ver todos los reclamos</a>
+</div>
+
+<!-- Stat cards -->
+<div class="dash-stats">
+
+  <a href="{% url 'reclamaciones:lista' %}" class="stat-card">
+    <div class="stat-card__icon" style="background:#eef2ff;color:#4f46e5">
+      <i class="bi bi-journal-text"></i>
+    </div>
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ total }}</span>
+      <span class="stat-card__label">Total registrados</span>
+    </div>
+  </a>
+
+  <a href="{% url 'reclamaciones:lista' %}?estado=PENDIENTE" class="stat-card">
+    <div class="stat-card__icon" style="background:#fffbeb;color:#d97706">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ pendientes }}</span>
+      <span class="stat-card__label">Pendientes</span>
+    </div>
+  </a>
+
+  <a href="{% url 'reclamaciones:lista' %}?estado=EN_PROCESO" class="stat-card">
+    <div class="stat-card__icon" style="background:#eff6ff;color:#2563eb">
+      <i class="bi bi-arrow-repeat"></i>
+    </div>
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ en_proceso }}</span>
+      <span class="stat-card__label">En proceso</span>
+    </div>
+  </a>
+
+  <a href="{% url 'reclamaciones:lista' %}?estado=RESPONDIDO" class="stat-card">
+    <div class="stat-card__icon" style="background:#ecfdf5;color:#059669">
+      <i class="bi bi-check-circle"></i>
+    </div>
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ respondidos }}</span>
+      <span class="stat-card__label">Respondidos / cerrados</span>
+    </div>
+  </a>
+
+  <a href="{% url 'reclamaciones:lista' %}?vencidos=on" class="stat-card stat-card--danger">
+    <div class="stat-card__icon" style="background:#fef2f2;color:#dc2626">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ vencidos }}</span>
+      <span class="stat-card__label">Vencidos sin respuesta</span>
+    </div>
+    {% if vencidos > 0 %}<span class="stat-card__alert">Requieren atención</span>{% endif %}
+  </a>
+
+  <div class="stat-card stat-card--warning">
+    <div class="stat-card__icon" style="background:#fff7ed;color:#ea580c">
+      <i class="bi bi-clock-history"></i>
+    </div>
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ por_vencer }}</span>
+      <span class="stat-card__label">Vencen en 3 días</span>
+    </div>
+    {% if por_vencer > 0 %}<span class="stat-card__alert">Próximos a vencer</span>{% endif %}
+  </div>
+
+</div>
+
+<!-- Tablas -->
+<div class="dash-grid">
+
+  <div class="card">
+    <div class="dash-card-header">
+      <h2><i class="bi bi-building"></i> Por sala</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Sala</th><th style="text-align:center">Total</th><th style="text-align:center">Abiertos</th></tr>
+        </thead>
+        <tbody>
+          {% for s in por_sala %}
+          <tr>
+            <td><a href="{% url 'reclamaciones:lista' %}?sala={{ s.pk }}">{{ s.nombre }}</a></td>
+            <td style="text-align:center">{{ s.total }}</td>
+            <td style="text-align:center">
+              {% if s.abiertos > 0 %}
+                <span class="badge badge--warning">{{ s.abiertos }}</span>
+              {% else %}
+                <span class="badge badge--success">0</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="td-empty">Sin salas registradas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="dash-card-header">
+      <h2><i class="bi bi-clock"></i> Últimos registros</h2>
+      <a href="{% url 'reclamaciones:lista' %}" class="btn btn--outline btn--sm">Ver todos</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Código</th><th>Consumidor</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          {% for r in recientes %}
+          <tr>
+            <td><a href="{% url 'reclamaciones:detalle' r.pk %}">{{ r.codigo }}</a></td>
+            <td>
+              {{ r.nombre_completo }}
+              <br><small class="text-muted">{{ r.sala.nombre }}</small>
+            </td>
+            <td>
+              <span class="badge
+                {% if r.estado == 'PENDIENTE' %}badge--warning
+                {% elif r.estado == 'EN_PROCESO' %}badge--info
+                {% elif r.estado == 'RESPONDIDO' or r.estado == 'CERRADO' %}badge--success
+                {% endif %}">
+                {{ r.get_estado_display }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="td-empty">Aún no hay reclamos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base_panel.html" %}
+{% block title %}{% if obj %}Editar sala{% else %}Nueva sala{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if obj %}Editar sala: {{ obj.nombre }}{% else %}Nueva sala{% endif %}</h1>
+    <p class="text-muted"><a href="{% url 'reclamaciones:salas' %}">← Volver a salas</a></p>
+  </div>
+</div>
+
+<form method="post" class="card form-card">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="grid--2">
+    {% include "reclamaciones/_campo.html" with field=form.nombre %}
+    {% include "reclamaciones/_campo.html" with field=form.codigo %}
+    {% include "reclamaciones/_campo.html" with field=form.direccion %}
+    {% include "reclamaciones/_campo.html" with field=form.distrito %}
+    {% include "reclamaciones/_campo.html" with field=form.email_notificacion %}
+    {% include "reclamaciones/_campo.html" with field=form.activa %}
+  </div>
+  <div class="form-actions">
+    <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+    <a href="{% url 'reclamaciones:salas' %}" class="btn btn--outline">Cancelar</a>
+    {% if obj %}<a href="{% url 'reclamaciones:sala_qr' obj.pk %}" class="btn btn--outline"><i class="bi bi-qr-code"></i> Ver QR</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

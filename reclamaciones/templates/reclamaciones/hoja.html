@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Hoja de reclamación · {{ sala.nombre }}{% endblock %}
+{% block content %}
+
+<div class="hoja-header">
+  <div class="hoja-header__sala">
+    <span class="hoja-header__sala-icon"><i class="bi bi-building"></i></span>
+    <div>
+      <div class="hoja-header__sala-nombre">{{ sala.nombre }}</div>
+      <div class="hoja-header__sala-dir">{{ sala.direccion }}{% if sala.distrito %} · {{ sala.distrito }}{% endif %}</div>
+    </div>
+  </div>
+  <h1>Hoja de Reclamación</h1>
+  <p class="hoja-header__sub">Complete todos los campos marcados con <span class="req">*</span>. Recibirá una constancia en su correo electrónico.</p>
+</div>
+
+{% if form.errors %}
+<div class="alert alert--danger" role="alert">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>Revise los campos marcados en rojo e inténtelo nuevamente.</span>
+</div>
+{% endif %}
+
+<form method="post" novalidate class="hoja-form">
+  {% csrf_token %}
+  <div class="hp" aria-hidden="true"><label>No completar <input type="text" name="sitio_web" tabindex="-1" autocomplete="off"></label></div>
+
+  <!-- PASO 1 -->
+  <div class="paso">
+    <div class="paso__header">
+      <span class="paso__num">1</span>
+      <div>
+        <h2 class="paso__title">Sus datos personales</h2>
+        <p class="paso__sub">Necesitamos sus datos para enviarle la constancia y la respuesta.</p>
+      </div>
+    </div>
+    <div class="paso__body">
+      <div class="grid--2">
+        <div class="field {% if form.nombres.errors %}field--error{% endif %}">
+          <label for="{{ form.nombres.id_for_label }}">Nombres <span class="req">*</span></label>
+          {{ form.nombres }}
+          {% for e in form.nombres.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field {% if form.apellidos.errors %}field--error{% endif %}">
+          <label for="{{ form.apellidos.id_for_label }}">Apellidos <span class="req">*</span></label>
+          {{ form.apellidos }}
+          {% for e in form.apellidos.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="grid--2">
+        <div class="field {% if form.tipo_documento.errors %}field--error{% endif %}">
+          <label for="{{ form.tipo_documento.id_for_label }}">Tipo de documento <span class="req">*</span></label>
+          {{ form.tipo_documento }}
+          {% for e in form.tipo_documento.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field {% if form.numero_documento.errors %}field--error{% endif %}">
+          <label for="{{ form.numero_documento.id_for_label }}">Número de documento <span class="req">*</span></label>
+          {{ form.numero_documento }}
+          {% for e in form.numero_documento.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="grid--2">
+        <div class="field {% if form.telefono.errors %}field--error{% endif %}">
+          <label for="{{ form.telefono.id_for_label }}">Teléfono / celular</label>
+          {{ form.telefono }}
+          <div class="help">Opcional, para contactarle más rápido</div>
+          {% for e in form.telefono.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field {% if form.email.errors %}field--error{% endif %}">
+          <label for="{{ form.email.id_for_label }}">Correo electrónico <span class="req">*</span></label>
+          {{ form.email }}
+          <div class="help">Le enviaremos la constancia aquí</div>
+          {% for e in form.email.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="field {% if form.domicilio.errors %}field--error{% endif %}">
+        <label for="{{ form.domicilio.id_for_label }}">Domicilio <span class="req">*</span></label>
+        {{ form.domicilio }}
+        {% for e in form.domicilio.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="paso">
+    <div class="paso__header">
+      <span class="paso__num">2</span>
+      <div>
+        <h2 class="paso__title">¿Qué producto o servicio está reclamando?</h2>
+        <p class="paso__sub">Describa el bien o servicio relacionado con su reclamo.</p>
+      </div>
+    </div>
+    <div class="paso__body">
+      <div class="field {% if form.tipo_bien.errors %}field--error{% endif %}">
+        <label>Tipo de bien <span class="req">*</span></label>
+        <div class="radio-cards">
+          {% for val, lbl in form.tipo_bien.field.choices %}
+          <label class="radio-card">
+            <input type="radio" name="{{ form.tipo_bien.html_name }}" value="{{ val }}" {% if form.tipo_bien.value == val %}checked{% endif %}>
+            <span class="radio-card__body">
+              <span class="radio-card__check"><i class="bi bi-check-lg"></i></span>
+              <span class="radio-card__label">{{ lbl }}</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        {% for e in form.tipo_bien.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+      <div class="field {% if form.descripcion_bien.errors %}field--error{% endif %}">
+        <label for="{{ form.descripcion_bien.id_for_label }}">Descripción del bien o servicio <span class="req">*</span></label>
+        {{ form.descripcion_bien }}
+        <div class="help">Ej: Máquina tragamonedas N° 12, servicio de caja, etc.</div>
+        {% for e in form.descripcion_bien.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+      <div class="grid--2">
+        <div class="field {% if form.monto_reclamado.errors %}field--error{% endif %}">
+          <label for="{{ form.monto_reclamado.id_for_label }}">Monto reclamado (S/)</label>
+          {{ form.monto_reclamado }}
+          <div class="help">Opcional — solo si aplica</div>
+          {% for e in form.monto_reclamado.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field {% if form.fecha_incidente.errors %}field--error{% endif %}">
+          <label for="{{ form.fecha_incidente.id_for_label }}">Fecha del incidente</label>
+          {{ form.fecha_incidente }}
+          {% for e in form.fecha_incidente.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div class="paso">
+    <div class="paso__header">
+      <span class="paso__num">3</span>
+      <div>
+        <h2 class="paso__title">Detalle de su reclamo</h2>
+        <p class="paso__sub">Cuéntenos qué pasó y qué solución espera.</p>
+      </div>
+    </div>
+    <div class="paso__body">
+      <div class="field {% if form.tipo.errors %}field--error{% endif %}">
+        <label>¿Qué tipo de registro desea hacer? <span class="req">*</span></label>
+        <div class="radio-cards radio-cards--tipo">
+          {% for val, lbl in form.tipo.field.choices %}
+          <label class="radio-card radio-card--tipo">
+            <input type="radio" name="{{ form.tipo.html_name }}" value="{{ val }}" {% if form.tipo.value == val %}checked{% endif %}>
+            <span class="radio-card__body">
+              <span class="radio-card__check"><i class="bi bi-check-lg"></i></span>
+              <span class="radio-card__icon">
+                {% if val == 'RECLAMO' %}<i class="bi bi-exclamation-triangle"></i>{% else %}<i class="bi bi-chat-left-text"></i>{% endif %}
+              </span>
+              <span class="radio-card__label">{{ lbl }}</span>
+              <span class="radio-card__desc">
+                {% if val == 'RECLAMO' %}Disconformidad con un producto o servicio{% else %}Malestar con la atención recibida{% endif %}
+              </span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        {% for e in form.tipo.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+      <div class="field {% if form.detalle.errors %}field--error{% endif %}">
+        <label for="{{ form.detalle.id_for_label }}">Describa lo que ocurrió <span class="req">*</span></label>
+        {{ form.detalle }}
+        <div class="help">Sea lo más detallado posible: fecha, hora, lugar, personas involucradas.</div>
+        {% for e in form.detalle.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+      <div class="field {% if form.pedido.errors %}field--error{% endif %}">
+        <label for="{{ form.pedido.id_for_label }}">¿Qué solución espera? <span class="req">*</span></label>
+        {{ form.pedido }}
+        <div class="help">Indique claramente qué acción espera de nuestra parte.</div>
+        {% for e in form.pedido.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 4 — Envío -->
+  <div class="paso paso--submit">
+    <div class="paso__body">
+      <div class="field check {% if form.acepta_terminos.errors %}field--error{% endif %}">
+        <label for="{{ form.acepta_terminos.id_for_label }}" class="check-label">
+          {{ form.acepta_terminos }}
+          <span>Declaro que los datos ingresados son verdaderos y autorizo el uso de mis datos personales para tramitar mi reclamo y ponerme en contacto conmigo respecto a esta solicitud (Ley N° 29733).</span>
+        </label>
+        {% for e in form.acepta_terminos.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+      </div>
+      <p class="legal-box">
+        <i class="bi bi-info-circle"></i>
+        La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el INDECOPI. El proveedor deberá dar respuesta en un plazo no mayor a <strong>{{ PLAZO_DIAS }} días hábiles</strong>.
+      </p>
+      <button class="btn btn--primary btn--lg btn--block btn--submit" type="submit">
+        <i class="bi bi-send-fill"></i> Enviar hoja de reclamación
+      </button>
+    </div>
+  </div>
+
+</form>
+{% endblock %}

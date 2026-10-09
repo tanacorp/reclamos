@@ -1,0 +1,98 @@
+{% extends "base_panel.html" %}
+{% block title %}{{ reclamo.codigo }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1>
+      {{ reclamo.codigo }}
+      <span class="badge {% if reclamo.estado == 'PENDIENTE' %}badge--warning{% elif reclamo.estado == 'EN_PROCESO' %}badge--info{% elif reclamo.estado == 'RESPONDIDO' or reclamo.estado == 'CERRADO' %}badge--success{% endif %}">
+        {{ reclamo.get_estado_display }}
+      </span>
+      {% if reclamo.esta_vencido %}<span class="badge badge--danger">Vencido</span>{% endif %}
+    </h1>
+    <div class="reclamo-meta">
+      <span><i class="bi bi-building"></i> <strong>{{ reclamo.sala.nombre }}</strong></span>
+      <span><i class="bi bi-calendar3"></i> {{ reclamo.fecha_registro|date:"d/m/Y H:i" }}</span>
+      <span><i class="bi bi-clock"></i> Límite: <strong>{{ reclamo.fecha_limite|date:"d/m/Y" }}</strong>
+        {% if reclamo.estado == "PENDIENTE" or reclamo.estado == "EN_PROCESO" %}
+          ({{ reclamo.dias_restantes }} días)
+        {% endif %}
+      </span>
+    </div>
+  </div>
+  <a href="{% url 'reclamaciones:lista' %}" class="btn btn--outline"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+<div class="detalle-grid">
+
+  <!-- Columna izquierda: datos + historial -->
+  <div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="dash-card-header"><h2><i class="bi bi-person"></i> Consumidor</h2></div>
+      <dl class="kv">
+        <dt>Nombre</dt><dd>{{ reclamo.nombre_completo }}</dd>
+        <dt>Documento</dt><dd>{{ reclamo.get_tipo_documento_display }} {{ reclamo.numero_documento }}</dd>
+        <dt>Domicilio</dt><dd>{{ reclamo.domicilio }}</dd>
+        <dt>Correo</dt><dd><a href="mailto:{{ reclamo.email }}">{{ reclamo.email }}</a></dd>
+        <dt>Teléfono</dt><dd>{{ reclamo.telefono|default:"—" }}</dd>
+        {% if reclamo.es_menor_de_edad %}
+          <dt>Apoderado</dt><dd>{{ reclamo.apoderado_nombre }} ({{ reclamo.apoderado_documento }})</dd>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="dash-card-header"><h2><i class="bi bi-box-seam"></i> Bien contratado y reclamo</h2></div>
+      <dl class="kv">
+        <dt>Tipo</dt><dd>{{ reclamo.get_tipo_display }}</dd>
+        <dt>{{ reclamo.get_tipo_bien_display }}</dt><dd>{{ reclamo.descripcion_bien }}</dd>
+        <dt>Monto reclamado</dt><dd>{% if reclamo.monto_reclamado %}S/ {{ reclamo.monto_reclamado }}{% else %}—{% endif %}</dd>
+        <dt>Fecha incidente</dt><dd>{{ reclamo.fecha_incidente|date:"d/m/Y"|default:"—" }}</dd>
+        <dt>Detalle</dt><dd>{{ reclamo.detalle }}</dd>
+        <dt>Pedido</dt><dd>{{ reclamo.pedido }}</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <div class="dash-card-header"><h2><i class="bi bi-clock-history"></i> Historial</h2></div>
+      <ul class="timeline">
+        {% for s in reclamo.seguimientos.all %}
+          <li>
+            <strong>{{ s.get_estado_display }}</strong>
+            <small>{{ s.fecha|date:"d/m/Y H:i" }} · {{ s.usuario|default:"Consumidor" }}</small>
+            {% if s.nota %}<p style="margin:4px 0 0;font-size:13px">{{ s.nota }}</p>{% endif %}
+          </li>
+        {% empty %}
+          <li style="padding-left:12px;color:var(--c-text-muted)">Sin historial.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Columna derecha: gestión -->
+  <div>
+    <form method="post" class="card">
+      <div class="dash-card-header" style="margin-bottom:20px"><h2><i class="bi bi-pencil-square"></i> Gestión</h2></div>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
+      {% include "reclamaciones/_campo.html" with field=form.estado %}
+      {% include "reclamaciones/_campo.html" with field=form.asignado_a %}
+      {% include "reclamaciones/_campo.html" with field=form.acciones_adoptadas %}
+      {% include "reclamaciones/_campo.html" with field=form.respuesta %}
+      {% include "reclamaciones/_campo.html" with field=form.notificar_consumidor %}
+      {% include "reclamaciones/_campo.html" with field=form.nota_interna %}
+      <div class="form-actions">
+        <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+      </div>
+      {% if reclamo.fecha_respuesta %}
+        <p class="legal" style="margin-top:12px">
+          Respondido el {{ reclamo.fecha_respuesta|date:"d/m/Y H:i" }}
+          {% if reclamo.respondido_por %}por {{ reclamo.respondido_por }}{% endif %}.
+        </p>
+      {% endif %}
+    </form>
+  </div>
+
+</div>
+{% endblock %}

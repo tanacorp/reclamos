@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Acceso personal{% endblock %}
+{% block content %}
+<h1>Acceso al panel</h1>
+<p class="lead">Solo personal autorizado.</p>
+<form method="post" class="card" style="max-width:420px">
+  {% csrf_token %}
+  {% if form.errors %}<div class="alert alert--danger">Usuario o contraseña incorrectos.</div>{% endif %}
+  {% include "reclamaciones/_campo.html" with field=form.username %}
+  {% include "reclamaciones/_campo.html" with field=form.password %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn" type="submit">Ingresar</button>
+</form>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base_panel.html" %}
+{% block title %}Configuración{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Configuración general</h1>
+    <p class="text-muted">Datos de la empresa, correo saliente y parámetros del sistema.</p>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="card form-card" style="max-width:800px;margin-bottom:20px">
+    <div class="dash-card-header" style="margin-bottom:20px">
+      <h2><i class="bi bi-building"></i> Datos de la empresa</h2>
+    </div>
+    {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="grid--2">
+      {% include "reclamaciones/_campo.html" with field=form.razon_social %}
+      {% include "reclamaciones/_campo.html" with field=form.nombre_comercial %}
+      {% include "reclamaciones/_campo.html" with field=form.ruc %}
+      {% include "reclamaciones/_campo.html" with field=form.domicilio_fiscal %}
+      {% include "reclamaciones/_campo.html" with field=form.plazo_dias_habiles %}
+    </div>
+  </div>
+
+  <div class="card form-card" style="max-width:800px;margin-bottom:20px">
+    <div class="dash-card-header" style="margin-bottom:20px">
+      <h2><i class="bi bi-envelope-at"></i> Correo saliente (SMTP)</h2>
+    </div>
+    <div class="cfg-smtp-note">
+      <i class="bi bi-info-circle"></i>
+      Si el servidor SMTP está vacío, los correos se imprimen en la consola del servidor (modo desarrollo).
+    </div>
+    <div class="grid--2">
+      {% include "reclamaciones/_campo.html" with field=form.email_host %}
+      {% include "reclamaciones/_campo.html" with field=form.email_port %}
+      {% include "reclamaciones/_campo.html" with field=form.email_host_user %}
+      {% include "reclamaciones/_campo.html" with field=form.email_host_password %}
+      {% include "reclamaciones/_campo.html" with field=form.email_use_tls %}
+      {% include "reclamaciones/_campo.html" with field=form.email_from %}
+    </div>
+  </div>
+
+  <div class="form-actions" style="max-width:800px">
+    <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar cambios</button>
+  </div>
+</form>
+
+<div class="card form-card" style="max-width:800px;margin-top:20px">
+  <div class="dash-card-header" style="margin-bottom:16px">
+    <h2><i class="bi bi-send"></i> Prueba de correo</h2>
+  </div>
+  <p class="text-muted">Envía un correo de prueba a <strong>{{ request.user.email|default:"(sin correo en tu usuario)" }}</strong> para verificar que la configuración SMTP funciona.</p>
+  {% if not request.user.email %}
+    <p class="text-muted" style="color:#dc2626">Tu usuario no tiene correo configurado. Edítalo en <a href="{% url 'reclamaciones:usuario_editar' request.user.pk %}">Usuarios</a> primero.</p>
+  {% else %}
+    <form method="post" action="{% url 'reclamaciones:test_correo' %}">
+      {% csrf_token %}
+      <button class="btn btn--outline" type="submit"><i class="bi bi-envelope-check"></i> Enviar correo de prueba</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

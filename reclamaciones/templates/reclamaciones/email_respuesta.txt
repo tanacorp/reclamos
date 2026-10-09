@@ -1,0 +1,11 @@
+Estimado(a) {{ reclamo.nombre_completo }}:
+
+Damos respuesta a su hoja de reclamación {{ reclamo.codigo }} ({{ reclamo.sala.nombre }}).
+
+{{ reclamo.respuesta }}
+
+Esta respuesta no limita su derecho de acudir al INDECOPI u otras vías de solución de controversias.
+
+Atentamente,
+{{ EMPRESA.razon_social }}
+RUC {{ EMPRESA.ruc }}

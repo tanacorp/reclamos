@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Libro de Reclamaciones{% endblock %}
+{% block content %}
+
+{% if not reclamo %}
+
+<div class="pub-hero">
+  <div class="pub-hero__icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+  <h1>Libro de Reclamaciones</h1>
+  <p>Registre su reclamo o queja, o consulte el estado de uno ya registrado.</p>
+</div>
+
+<div class="pub-actions">
+
+  {% if salas %}
+  <div class="pub-action-card">
+    <div class="pub-action-card__icon pub-action-card__icon--primary">
+      <i class="bi bi-pencil-square"></i>
+    </div>
+    <div class="pub-action-card__body">
+      <h2>Registrar un reclamo</h2>
+      <p>Seleccione el local donde ocurrió el hecho para completar su hoja de reclamación.</p>
+      <div class="salas-grid">
+        {% for sala in salas %}
+        <a class="sala-card" href="{{ sala.get_absolute_url }}">
+          <span class="sala-card__icon"><i class="bi bi-building"></i></span>
+          <span class="sala-card__body">
+            <strong>{{ sala.nombre }}</strong>
+            <small>{{ sala.direccion }}{% if sala.distrito %} · {{ sala.distrito }}{% endif %}</small>
+          </span>
+          <i class="bi bi-chevron-right sala-card__arrow"></i>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="pub-action-card">
+    <div class="pub-action-card__icon pub-action-card__icon--info">
+      <i class="bi bi-search"></i>
+    </div>
+    <div class="pub-action-card__body">
+      <h2>Consultar mi reclamo</h2>
+      <p>Ingrese el código de su constancia y su número de documento para ver el estado.</p>
+      <form method="post" class="consulta-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert--danger"><i class="bi bi-exclamation-circle-fill"></i><span>{{ form.non_field_errors }}</span></div>
+        {% endif %}
+        <div class="field">
+          <label for="{{ form.codigo.id_for_label }}">Código de constancia <span class="req">*</span></label>
+          {{ form.codigo }}
+          <div class="help">Ejemplo: MIR-2025-000001</div>
+          {% for e in form.codigo.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field">
+          <label for="{{ form.numero_documento.id_for_label }}">Número de documento <span class="req">*</span></label>
+          {{ form.numero_documento }}
+          {% for e in form.numero_documento.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <button class="btn btn--primary btn--lg btn--block" type="submit">
+          <i class="bi bi-search"></i> Consultar estado
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% else %}
+
+<div class="pub-result">
+  <a class="pub-back" href="{% url 'reclamaciones:consulta' %}"><i class="bi bi-arrow-left"></i> Nueva consulta</a>
+
+  <div class="result-card">
+    <div class="result-card__header">
+      <div class="result-card__code">{{ reclamo.codigo }}</div>
+      <span class="badge badge--lg
+        {% if reclamo.estado == 'PENDIENTE' %}badge--warning
+        {% elif reclamo.estado == 'EN_PROCESO' %}badge--info
+        {% elif reclamo.estado == 'RESPONDIDO' or reclamo.estado == 'CERRADO' %}badge--success
+        {% endif %}">
+        {% if reclamo.estado == 'PENDIENTE' %}<i class="bi bi-hourglass-split"></i>
+        {% elif reclamo.estado == 'EN_PROCESO' %}<i class="bi bi-arrow-repeat"></i>
+        {% else %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+        {{ reclamo.get_estado_display }}
+      </span>
+    </div>
+    <p class="result-card__meta"><i class="bi bi-building"></i> {{ reclamo.sala.nombre }} &nbsp;·&nbsp; <i class="bi bi-calendar3"></i> Registrado el {{ reclamo.fecha_registro|date:"d/m/Y" }}</p>
+
+    <div class="result-items">
+      <div class="result-item">
+        <span class="result-item__label">Tipo</span>
+        <span class="result-item__value">{{ reclamo.get_tipo_display }}</span>
+      </div>
+      <div class="result-item">
+        <span class="result-item__label">Fecha límite de respuesta</span>
+        <span class="result-item__value"><strong>{{ reclamo.fecha_limite|date:"d/m/Y" }}</strong></span>
+      </div>
+      <div class="result-item result-item--full">
+        <span class="result-item__label">Respuesta</span>
+        <span class="result-item__value">
+          {% if reclamo.respuesta and reclamo.fecha_respuesta %}
+            {{ reclamo.respuesta }}
+            <small class="result-item__date">Respondido el {{ reclamo.fecha_respuesta|date:"d/m/Y" }}</small>
+          {% else %}
+            <span class="text-muted">Su reclamo está siendo atendido. Le responderemos antes de la fecha límite.</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}

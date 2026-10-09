@@ -1,0 +1,95 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <title>{% block title %}Libro de Reclamaciones{% endblock %} · {{ EMPRESA.nombre_comercial }}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top__inner">
+      <a class="brand" href="{% url 'reclamaciones:consulta' %}">
+        <span class="brand__mark" aria-hidden="true">
+          <i class="bi bi-journal-bookmark-fill"></i>
+        </span>
+        <span class="brand__text">
+          <strong>{{ EMPRESA.nombre_comercial }}</strong>
+          <small>Libro de Reclamaciones</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" data-nav-toggle>
+        <i class="bi bi-list"></i>
+      </button>
+
+      <nav class="nav" data-nav>
+        {% if request.user.is_authenticated and request.user.is_staff %}
+          <a href="{% url 'reclamaciones:panel' %}"><i class="bi bi-speedometer2"></i> Panel</a>
+          <a href="{% url 'reclamaciones:lista' %}"><i class="bi bi-list-check"></i> Reclamos</a>
+          <form method="post" action="{% url 'reclamaciones:logout' %}" class="nav__form">
+            {% csrf_token %}
+            <button class="btn btn--ghost" type="submit">
+              <i class="bi bi-box-arrow-right"></i> Salir ({{ request.user.get_username }})
+            </button>
+          </form>
+        {% else %}
+          <a href="{% url 'reclamaciones:consulta' %}"><i class="bi bi-search"></i> Consultar estado</a>
+          <a class="btn btn--primary" href="{% url 'reclamaciones:login' %}">
+            <i class="bi bi-shield-lock"></i> Acceso personal
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap main">
+    {% if messages %}
+      <div class="alerts">
+        {% for m in messages %}
+          <div class="alert alert--{{ m.tags }}" role="alert">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>{{ m }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div>
+        <strong>{{ EMPRESA.razon_social }}</strong>
+        <p>RUC {{ EMPRESA.ruc }}</p>
+      </div>
+      <div>
+        <p><i class="bi bi-geo-alt"></i> {{ EMPRESA.domicilio_fiscal }}</p>
+      </div>
+      <div class="footer__legal">
+        <p>© {% now "Y" %} · Todos los derechos reservados</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.querySelector('[data-nav-toggle]');
+    const nav = document.querySelector('[data-nav]');
+    if (toggle && nav) {
+      toggle.addEventListener('click', () => {
+        const open = nav.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open);
+        toggle.querySelector('i').className = open ? 'bi bi-x-lg' : 'bi bi-list';
+      });
+    }
+  </script>
+</body>
+</html>

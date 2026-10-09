@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Libro de Reclamaciones virtual</h1>
+<p class="lead">Seleccione la sala de juego donde ocurrió el hecho para registrar su hoja de reclamación. Recibirá una constancia por correo electrónico.</p>
+<div class="salas-grid">
+  {% for sala in salas %}
+    <a class="sala-card" href="{{ sala.get_absolute_url }}">
+      <span class="sala-card__icon"><i class="bi bi-building"></i></span>
+      <span class="sala-card__body">
+        <strong>{{ sala.nombre }}</strong>
+        <small>{{ sala.direccion }}{% if sala.distrito %} · {{ sala.distrito }}{% endif %}</small>
+      </span>
+      <i class="bi bi-chevron-right sala-card__arrow"></i>
+    </a>
+  {% empty %}
+    <p>No hay salas habilitadas. Registre las salas desde <em>Configuración</em>.</p>
+  {% endfor %}
+</div>
+<p style="margin-top:22px"><a href="{% url 'reclamaciones:consulta' %}">¿Ya registró un reclamo? Consulte su estado aquí.</a></p>
+{% endblock %}
