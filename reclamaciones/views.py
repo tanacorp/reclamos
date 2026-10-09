@@ -139,6 +139,20 @@ class StaffRequiredMixin(UserPassesTestMixin):
         return u.is_authenticated and u.is_staff and u.is_active
 
 
+class AdminRequiredMixin(UserPassesTestMixin):
+    """Solo superusuarios pueden acceder (configuración, salas, feriados, usuarios)."""
+    login_url = "reclamaciones:login"
+
+    def test_func(self):
+        u = self.request.user
+        return u.is_authenticated and u.is_superuser and u.is_active
+
+    def handle_no_permission(self):
+        from django.contrib import messages
+        messages.error(self.request, "No tienes permiso para acceder a esta sección.")
+        return redirect("reclamaciones:panel")
+
+
 class PanelView(StaffRequiredMixin, TemplateView):
     template_name = "reclamaciones/panel.html"
 
@@ -271,7 +285,7 @@ class ExportarCSVView(StaffRequiredMixin, View):
 
 # ---------------------------------------------------------------- Configuración
 
-class SalasView(StaffRequiredMixin, View):
+class SalasView(AdminRequiredMixin, View):
     def get(self, request, pk=None):
         if pk:
             sala = get_object_or_404(Sala, pk=pk)
@@ -288,7 +302,7 @@ class SalasView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/sala_form.html", {"form": form, "obj": sala}, status=400)
 
 
-class SalaNuevaView(StaffRequiredMixin, View):
+class SalaNuevaView(AdminRequiredMixin, View):
     def get(self, request):
         return render(request, "reclamaciones/config/sala_form.html", {"form": SalaForm()})
 
@@ -301,7 +315,7 @@ class SalaNuevaView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/sala_form.html", {"form": form}, status=400)
 
 
-class SalaQRView(StaffRequiredMixin, View):
+class SalaQRView(AdminRequiredMixin, View):
     def get(self, request, pk):
         import base64, io
         import qrcode
@@ -320,7 +334,7 @@ class SalaQRView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/sala_qr.html", {"sala": sala, "qr_b64": qr_b64, "qr_url": qr_url})
 
 
-class SalaEliminarView(StaffRequiredMixin, View):
+class SalaEliminarView(AdminRequiredMixin, View):
     def post(self, request, pk):
         sala = get_object_or_404(Sala, pk=pk)
         if sala.reclamos.exists():
@@ -331,7 +345,7 @@ class SalaEliminarView(StaffRequiredMixin, View):
         return redirect("reclamaciones:salas")
 
 
-class FeriadosView(StaffRequiredMixin, View):
+class FeriadosView(AdminRequiredMixin, View):
     def get(self, request, pk=None):
         if pk:
             feriado = get_object_or_404(Feriado, pk=pk)
@@ -348,7 +362,7 @@ class FeriadosView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/feriado_form.html", {"form": form, "obj": feriado}, status=400)
 
 
-class FeriadoNuevoView(StaffRequiredMixin, View):
+class FeriadoNuevoView(AdminRequiredMixin, View):
     def get(self, request):
         return render(request, "reclamaciones/config/feriado_form.html", {"form": FeriadoForm()})
 
@@ -361,14 +375,14 @@ class FeriadoNuevoView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/feriado_form.html", {"form": form}, status=400)
 
 
-class FeriadoEliminarView(StaffRequiredMixin, View):
+class FeriadoEliminarView(AdminRequiredMixin, View):
     def post(self, request, pk):
         get_object_or_404(Feriado, pk=pk).delete()
         messages.success(request, "Feriado eliminado.")
         return redirect("reclamaciones:feriados")
 
 
-class UsuariosView(StaffRequiredMixin, View):
+class UsuariosView(AdminRequiredMixin, View):
     def get(self, request, pk=None):
         User = get_user_model()
         if pk:
@@ -387,7 +401,7 @@ class UsuariosView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/usuario_form.html", {"form": form, "obj": usuario}, status=400)
 
 
-class UsuarioNuevoView(StaffRequiredMixin, View):
+class UsuarioNuevoView(AdminRequiredMixin, View):
     def get(self, request):
         return render(request, "reclamaciones/config/usuario_form.html", {"form": UsuarioForm()})
 
@@ -400,7 +414,7 @@ class UsuarioNuevoView(StaffRequiredMixin, View):
         return render(request, "reclamaciones/config/usuario_form.html", {"form": form}, status=400)
 
 
-class UsuarioEliminarView(StaffRequiredMixin, View):
+class UsuarioEliminarView(AdminRequiredMixin, View):
     def post(self, request, pk):
         User = get_user_model()
         usuario = get_object_or_404(User, pk=pk)
@@ -412,7 +426,7 @@ class UsuarioEliminarView(StaffRequiredMixin, View):
         return redirect("reclamaciones:usuarios")
 
 
-class ConfiguracionView(StaffRequiredMixin, View):
+class ConfiguracionView(AdminRequiredMixin, View):
     template_name = "reclamaciones/config/configuracion.html"
 
     def get(self, request):
@@ -431,7 +445,7 @@ class ConfiguracionView(StaffRequiredMixin, View):
         return render(request, self.template_name, {"form": form}, status=400)
 
 
-class TestCorreoView(StaffRequiredMixin, View):
+class TestCorreoView(AdminRequiredMixin, View):
     def post(self, request):
         from django.core.mail import send_mail
         try:

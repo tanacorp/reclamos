@@ -17,9 +17,19 @@
     {% include "reclamaciones/_campo.html" with field=form.last_name %}
     {% include "reclamaciones/_campo.html" with field=form.password1 %}
     {% include "reclamaciones/_campo.html" with field=form.password2 %}
-    {% include "reclamaciones/_campo.html" with field=form.is_staff %}
-    {% include "reclamaciones/_campo.html" with field=form.is_active %}
   </div>
+  <fieldset class="form-section">
+    <legend>Rol y acceso</legend>
+    <div class="grid--2">
+      {% include "reclamaciones/_campo.html" with field=form.is_active %}
+      {% include "reclamaciones/_campo.html" with field=form.is_staff %}
+      {% include "reclamaciones/_campo.html" with field=form.is_superuser %}
+    </div>
+    <p class="text-muted" style="font-size:.85rem;margin-top:.5rem">
+      <strong>Operador</strong>: marcar solo <em>Activo</em> + <em>Es staff</em> — accede al panel y gestiona reclamos.<br>
+      <strong>Administrador</strong>: marcar también <em>Es superusuario</em> — accede además a salas, feriados, usuarios y configuración.
+    </p>
+  </fieldset>
   <div class="form-actions">
     <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
     <a href="{% url 'reclamaciones:usuarios' %}" class="btn btn--outline">Cancelar</a>
