@@ -30,6 +30,27 @@
       <strong>Administrador</strong>: marcar también <em>Es superusuario</em> — accede además a salas, feriados, usuarios y configuración.
     </p>
   </fieldset>
+  {% if grupos_salas %}
+  <fieldset class="form-section">
+    <legend>Salas asignadas <span class="text-muted" style="font-size:.8rem;font-weight:400">(solo operadores — ignorado para superusuarios)</span></legend>
+    {% if form.salas.errors %}<p class="field-error">{{ form.salas.errors }}</p>{% endif %}
+    <div class="salas-grupos">
+      {% for empresa, salas in grupos_salas %}
+      <div class="salas-grupo">
+        <p class="salas-grupo__titulo">{{ empresa.nombre_comercial }}</p>
+        <div class="salas-grupo__items">
+          {% for sala, checked in salas %}
+          <label class="check-label">
+            <input type="checkbox" name="salas" value="{{ sala.pk }}"{% if checked %} checked{% endif %}>
+            {{ sala.nombre }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% endif %}
   <div class="form-actions">
     <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
     <a href="{% url 'reclamaciones:usuarios' %}" class="btn btn--outline">Cancelar</a>

@@ -514,13 +514,32 @@ class FeriadoEliminarView(AdminRequiredMixin, View):
 
 # ---------------------------------------------------------------- Usuarios
 
+def _ctx_usuario(form, obj=None):
+    empresas = Empresa.objects.prefetch_related("salas").order_by("nombre_comercial")
+    salas_seleccionadas = set(form.fields["salas"].initial or [])
+    if hasattr(form, "cleaned_data"):
+        salas_seleccionadas = {s.pk for s in form.cleaned_data.get("salas", [])}
+    elif form.data:
+        salas_seleccionadas = {int(pk) for pk in form.data.getlist("salas") if pk.isdigit()}
+    grupos = [
+        (emp, [(s, s.pk in salas_seleccionadas) for s in emp.salas.filter(activa=True)])
+        for emp in empresas
+        if emp.salas.filter(activa=True).exists()
+    ]
+    return {"form": form, "obj": obj, "grupos_salas": grupos}
+
+
 class UsuariosView(AdminRequiredMixin, View):
     def get(self, request, pk=None):
         User = get_user_model()
         if pk:
             usuario = get_object_or_404(User, pk=pk)
-            return render(request, "reclamaciones/config/usuario_form.html",
-                          {"form": UsuarioForm(instance=usuario), "obj": usuario})
+            form = UsuarioForm(instance=usuario)
+            # Preseleccionar salas actuales
+            form.fields["salas"].initial = set(
+                OperadorSala.objects.filter(usuario=usuario).values_list("sala_id", flat=True)
+            )
+            return render(request, "reclamaciones/config/usuario_form.html", _ctx_usuario(form, usuario))
         return render(request, "reclamaciones/config/usuarios.html",
                       {"items": User.objects.order_by("username")})
 
@@ -533,12 +552,12 @@ class UsuariosView(AdminRequiredMixin, View):
             messages.success(request, "Usuario guardado correctamente.")
             return redirect("reclamaciones:usuarios")
         return render(request, "reclamaciones/config/usuario_form.html",
-                      {"form": form, "obj": usuario}, status=400)
+                      _ctx_usuario(form, usuario), status=400)
 
 
 class UsuarioNuevoView(AdminRequiredMixin, View):
     def get(self, request):
-        return render(request, "reclamaciones/config/usuario_form.html", {"form": UsuarioForm()})
+        return render(request, "reclamaciones/config/usuario_form.html", _ctx_usuario(UsuarioForm()))
 
     def post(self, request):
         form = UsuarioForm(request.POST)
@@ -546,7 +565,7 @@ class UsuarioNuevoView(AdminRequiredMixin, View):
             form.save()
             messages.success(request, "Usuario creado correctamente.")
             return redirect("reclamaciones:usuarios")
-        return render(request, "reclamaciones/config/usuario_form.html", {"form": form}, status=400)
+        return render(request, "reclamaciones/config/usuario_form.html", _ctx_usuario(form), status=400)
 
 
 class UsuarioEliminarView(AdminRequiredMixin, View):

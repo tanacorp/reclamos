@@ -619,3 +619,11 @@ a.stat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); bord
   .stat-card__value { font-size: 26px; }
   .page-header { flex-direction: column; }
 }
+
+/* Salas agrupadas por empresa en formulario de usuario */
+.salas-grupos { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .5rem; }
+.salas-grupo { border: 1px solid var(--border); border-radius: 6px; padding: .75rem 1rem; min-width: 200px; flex: 1 1 200px; }
+.salas-grupo__titulo { font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin: 0 0 .5rem; }
+.salas-grupo__items { display: flex; flex-direction: column; gap: .35rem; }
+.check-label { display: flex; align-items: center; gap: .5rem; font-size: .9rem; cursor: pointer; }
+.check-label input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
