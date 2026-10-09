@@ -7,14 +7,16 @@ from django.urls import reverse
 from django.utils import timezone
 
 
-class Configuracion(models.Model):
-    """Configuración global del sistema (singleton). Se accede via Configuracion.get()."""
+class Empresa(models.Model):
+    """Empresa operadora. Cada empresa tiene sus propias salas y configuración SMTP."""
 
-    # Empresa
-    razon_social = models.CharField(max_length=200, default="RAZÓN SOCIAL DE LA EMPRESA S.A.C.")
-    nombre_comercial = models.CharField(max_length=120, default="Nombre Comercial")
-    ruc = models.CharField(max_length=11, default="00000000000")
-    domicilio_fiscal = models.CharField(max_length=200, default="Dirección fiscal de la empresa")
+    razon_social = models.CharField(max_length=200)
+    nombre_comercial = models.CharField(max_length=120)
+    ruc = models.CharField(
+        max_length=11, unique=True,
+        validators=[RegexValidator(r"^\d{11}$", "El RUC debe tener 11 dígitos.")],
+    )
+    domicilio_fiscal = models.CharField(max_length=200)
     plazo_dias_habiles = models.PositiveIntegerField(
         "plazo de respuesta (días hábiles)", default=15,
         help_text="Verificar vigencia con el área legal.",
@@ -32,35 +34,25 @@ class Configuracion(models.Model):
     )
 
     class Meta:
-        verbose_name = "configuración"
+        ordering = ["razon_social"]
+        verbose_name = "empresa"
+        verbose_name_plural = "empresas"
 
     def __str__(self):
-        return "Configuración general"
+        return f"{self.nombre_comercial} ({self.ruc})"
 
-    @classmethod
-    def get(cls):
-        obj, _ = cls.objects.get_or_create(pk=1)
-        return obj
-
-    def apply_to_django(self):
-        """Aplica los valores al settings en tiempo de ejecución."""
-        from django.conf import settings
-        if self.email_host:
-            settings.EMAIL_HOST = self.email_host
-            settings.EMAIL_PORT = self.email_port
-            settings.EMAIL_HOST_USER = self.email_host_user
-            settings.EMAIL_HOST_PASSWORD = self.email_host_password
-            settings.EMAIL_USE_TLS = self.email_use_tls
-            settings.DEFAULT_FROM_EMAIL = self.email_from
-            settings.EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-        settings.EMPRESA = {
-            "razon_social": self.razon_social,
-            "nombre_comercial": self.nombre_comercial,
-            "ruc": self.ruc,
-            "domicilio_fiscal": self.domicilio_fiscal,
+    def get_email_connection(self):
+        """Devuelve kwargs para get_connection() con la config SMTP de esta empresa."""
+        if not self.email_host:
+            return {}
+        return {
+            "backend": "django.core.mail.backends.smtp.EmailBackend",
+            "host": self.email_host,
+            "port": self.email_port,
+            "username": self.email_host_user,
+            "password": self.email_host_password,
+            "use_tls": self.email_use_tls,
         }
-        settings.PLAZO_RESPUESTA_DIAS_HABILES = self.plazo_dias_habiles
-
 
 
 class Feriado(models.Model):
@@ -91,10 +83,11 @@ def sumar_dias_habiles(inicio: date, dias: int) -> date:
 
 
 class Sala(models.Model):
-    """Sala de juego física (local). Cada sala tiene su propio libro/correlativo."""
+    """Sala de juego física (local). Cada sala pertenece a una empresa."""
 
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="salas")
     codigo = models.SlugField(
-        "código", max_length=10, unique=True,
+        "código", max_length=10,
         help_text="Código corto usado en el correlativo y en la URL. Ej.: MIR, SMP, CHO",
     )
     nombre = models.CharField(max_length=120)
@@ -108,14 +101,32 @@ class Sala(models.Model):
 
     class Meta:
         ordering = ["nombre"]
+        unique_together = [("empresa", "codigo")]
         verbose_name = "sala de juego"
         verbose_name_plural = "salas de juego"
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.empresa.nombre_comercial})"
 
     def get_absolute_url(self):
-        return reverse("reclamaciones:hoja", args=[self.codigo])
+        return reverse("reclamaciones:hoja", args=[self.empresa.ruc, self.codigo])
+
+
+class OperadorSala(models.Model):
+    """Relación entre un usuario operador y las salas que puede gestionar."""
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="salas_asignadas"
+    )
+    sala = models.ForeignKey(Sala, on_delete=models.CASCADE, related_name="operadores")
+
+    class Meta:
+        unique_together = [("usuario", "sala")]
+        verbose_name = "asignación operador-sala"
+        verbose_name_plural = "asignaciones operador-sala"
+
+    def __str__(self):
+        return f"{self.usuario} → {self.sala}"
 
 
 class Correlativo(models.Model):
@@ -157,6 +168,7 @@ class Reclamo(models.Model):
         CERRADO = "CERRADO", "Cerrado"
 
     codigo = models.CharField(max_length=30, unique=True, editable=False)
+    empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, related_name="reclamos")
     sala = models.ForeignKey(Sala, on_delete=models.PROTECT, related_name="reclamos")
     fecha_registro = models.DateTimeField(default=timezone.now, editable=False)
     fecha_limite = models.DateField("fecha límite de respuesta", null=True, blank=True)
@@ -172,6 +184,7 @@ class Reclamo(models.Model):
     domicilio = models.CharField(max_length=200)
     telefono = models.CharField("teléfono", max_length=20, blank=True)
     email = models.EmailField("correo electrónico")
+
     # 2. Identificación del bien contratado
     tipo_bien = models.CharField(max_length=10, choices=TipoBien.choices, default=TipoBien.SERVICIO)
     descripcion_bien = models.CharField("descripción del producto o servicio", max_length=250)
@@ -239,7 +252,7 @@ class Reclamo(models.Model):
             self.codigo = f"{self.sala.codigo.upper()}-{anio}-{numero:06d}"
         if self.fecha_limite is None:
             inicio = timezone.localtime(self.fecha_registro).date()
-            self.fecha_limite = sumar_dias_habiles(inicio, settings.PLAZO_RESPUESTA_DIAS_HABILES)
+            self.fecha_limite = sumar_dias_habiles(inicio, self.empresa.plazo_dias_habiles)
         super().save(*args, **kwargs)
 
 

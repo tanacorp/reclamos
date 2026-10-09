@@ -4,17 +4,16 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from .models import Feriado, Reclamo, Sala
+from .models import Empresa, Feriado, OperadorSala, Reclamo, Sala
 
 
-class ConfiguracionForm(forms.ModelForm):
+class EmpresaForm(forms.ModelForm):
     email_host_password = forms.CharField(
         label="Contraseña SMTP", widget=forms.PasswordInput(render_value=True), required=False
     )
 
     class Meta:
-        from .models import Configuracion
-        model = Configuracion
+        model = Empresa
         fields = [
             "razon_social", "nombre_comercial", "ruc", "domicilio_fiscal", "plazo_dias_habiles",
             "email_host", "email_port", "email_host_user", "email_host_password", "email_use_tls", "email_from",
@@ -22,7 +21,6 @@ class ConfiguracionForm(forms.ModelForm):
 
 
 class HojaReclamacionForm(forms.ModelForm):
-    # Campo trampa anti-spam (debe llegar vacío)
     sitio_web = forms.CharField(required=False, widget=forms.TextInput(attrs={"tabindex": "-1", "autocomplete": "off"}))
 
     class Meta:
@@ -79,8 +77,6 @@ class ConsultaForm(forms.Form):
 
 
 class GestionForm(forms.ModelForm):
-    """Edición interna del reclamo desde el panel."""
-
     class Meta:
         model = Reclamo
         fields = ["estado", "asignado_a", "acciones_adoptadas", "respuesta"]
@@ -114,12 +110,21 @@ class GestionForm(forms.ModelForm):
 class SalaForm(forms.ModelForm):
     class Meta:
         model = Sala
-        fields = ["codigo", "nombre", "direccion", "distrito", "email_notificacion", "activa"]
+        fields = ["empresa", "codigo", "nombre", "direccion", "distrito", "email_notificacion", "activa"]
+
+
+class OperadorSalaForm(forms.Form):
+    """Asigna salas a un operador (usado desde el formulario de usuario)."""
+    salas = forms.ModelMultipleChoiceField(
+        queryset=Sala.objects.select_related("empresa").filter(activa=True),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Salas asignadas",
+    )
 
 
 class FeriadoForm(forms.ModelForm):
     class Meta:
-        from .models import Feriado
         model = Feriado
         fields = ["fecha", "descripcion"]
         widgets = {"fecha": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
@@ -129,10 +134,21 @@ class UsuarioForm(forms.ModelForm):
     password1 = forms.CharField(label="Contraseña", widget=forms.PasswordInput, required=False,
                                 help_text="Dejar en blanco para no cambiarla.")
     password2 = forms.CharField(label="Confirmar contraseña", widget=forms.PasswordInput, required=False)
+    salas = forms.ModelMultipleChoiceField(
+        queryset=Sala.objects.select_related("empresa").filter(activa=True),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Salas asignadas (solo operadores)",
+    )
 
     class Meta:
         model = get_user_model()
         fields = ["username", "first_name", "last_name", "email", "is_active", "is_staff", "is_superuser"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields["salas"].initial = Sala.objects.filter(operadores__usuario=self.instance)
 
     def clean(self):
         data = super().clean()
@@ -149,16 +165,20 @@ class UsuarioForm(forms.ModelForm):
         p = self.cleaned_data.get("password1")
         if p:
             user.set_password(p)
-        elif not user.pk:  # nuevo usuario sin contraseña
+        elif not user.pk:
             user.set_unusable_password()
         if commit:
             user.save()
+            OperadorSala.objects.filter(usuario=user).delete()
+            for sala in self.cleaned_data.get("salas", []):
+                OperadorSala.objects.create(usuario=user, sala=sala)
         return user
 
 
 class FiltroReclamosForm(forms.Form):
     q = forms.CharField(required=False, label="Buscar", widget=forms.TextInput(attrs={"placeholder": "Código, nombre, documento o email"}))
-    sala = forms.ModelChoiceField(queryset=Sala.objects.all(), required=False, empty_label="Todas las salas")
+    empresa = forms.ModelChoiceField(queryset=Empresa.objects.all(), required=False, empty_label="Todas las empresas")
+    sala = forms.ModelChoiceField(queryset=Sala.objects.select_related("empresa"), required=False, empty_label="Todas las salas")
     estado = forms.ChoiceField(required=False, choices=[("", "Todos los estados")] + list(Reclamo.Estado.choices))
     tipo = forms.ChoiceField(required=False, choices=[("", "Reclamo y queja")] + list(Reclamo.Tipo.choices))
     desde = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))

@@ -12,11 +12,12 @@
 <div class="table-wrap">
   <table>
     <thead>
-      <tr><th>Nombre</th><th>Código</th><th>Dirección</th><th>Correo notif.</th><th>Estado</th><th></th></tr>
+      <tr><th>Empresa</th><th>Nombre</th><th>Código</th><th>Dirección</th><th>Correo notif.</th><th>Estado</th><th></th></tr>
     </thead>
     <tbody>
       {% for s in items %}
       <tr>
+        <td><small>{{ s.empresa.nombre_comercial }}</small></td>
         <td><strong>{{ s.nombre }}</strong></td>
         <td><code>{{ s.codigo }}</code></td>
         <td>{{ s.direccion }}{% if s.distrito %} · {{ s.distrito }}{% endif %}</td>

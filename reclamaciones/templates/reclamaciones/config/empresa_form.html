@@ -1,0 +1,50 @@
+{% extends "base_panel.html" %}
+{% block title %}{% if obj %}Editar empresa{% else %}Nueva empresa{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if obj %}Editar empresa: {{ obj.nombre_comercial }}{% else %}Nueva empresa{% endif %}</h1>
+    <p class="text-muted"><a href="{% url 'reclamaciones:empresas' %}">← Volver a empresas</a></p>
+  </div>
+</div>
+
+<form method="post" class="card form-card">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert--danger">{{ form.non_field_errors }}</div>{% endif %}
+
+  <fieldset class="form-section">
+    <legend>Datos de la empresa</legend>
+    <div class="grid--2">
+      {% include "reclamaciones/_campo.html" with field=form.razon_social %}
+      {% include "reclamaciones/_campo.html" with field=form.nombre_comercial %}
+      {% include "reclamaciones/_campo.html" with field=form.ruc %}
+      {% include "reclamaciones/_campo.html" with field=form.domicilio_fiscal %}
+      {% include "reclamaciones/_campo.html" with field=form.plazo_dias_habiles %}
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Configuración SMTP</legend>
+    <p class="text-muted" style="font-size:.85rem;margin-bottom:1rem">Dejar vacío para usar el backend por defecto (consola en desarrollo).</p>
+    <div class="grid--2">
+      {% include "reclamaciones/_campo.html" with field=form.email_host %}
+      {% include "reclamaciones/_campo.html" with field=form.email_port %}
+      {% include "reclamaciones/_campo.html" with field=form.email_host_user %}
+      {% include "reclamaciones/_campo.html" with field=form.email_host_password %}
+      {% include "reclamaciones/_campo.html" with field=form.email_use_tls %}
+      {% include "reclamaciones/_campo.html" with field=form.email_from %}
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="btn btn--primary" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+    <a href="{% url 'reclamaciones:empresas' %}" class="btn btn--outline">Cancelar</a>
+    {% if obj %}
+    <form method="post" action="{% url 'reclamaciones:empresa_test_correo' obj.pk %}" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--outline"><i class="bi bi-envelope"></i> Enviar correo de prueba</button>
+    </form>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

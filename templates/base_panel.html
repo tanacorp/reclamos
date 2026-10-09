@@ -38,10 +38,13 @@
         <!-- Dropdown Configuración (solo superusuarios) -->
         {% if request.user.is_superuser %}
         <div class="pnav__dropdown">
-          <button class="pnav__drop-btn {% if request.resolver_match.url_name in 'salas,sala_nueva,sala_editar,sala_qr,feriados,feriado_nuevo,feriado_editar,usuarios,usuario_nuevo,usuario_editar,configuracion,test_correo' %}active{% endif %}" type="button" data-dropdown>
+          <button class="pnav__drop-btn {% if request.resolver_match.url_name in 'empresas,empresa_nueva,empresa_editar,salas,sala_nueva,sala_editar,sala_qr,feriados,feriado_nuevo,feriado_editar,usuarios,usuario_nuevo,usuario_editar' %}active{% endif %}" type="button" data-dropdown>
             <i class="bi bi-sliders"></i> Configuración <i class="bi bi-chevron-down pnav__chevron"></i>
           </button>
           <div class="pnav__drop-menu" data-dropdown-menu>
+            <a href="{% url 'reclamaciones:empresas' %}" class="{% if 'empresa' in request.resolver_match.url_name %}active{% endif %}">
+              <i class="bi bi-briefcase"></i> Empresas
+            </a>
             <a href="{% url 'reclamaciones:salas' %}" class="{% if 'sala' in request.resolver_match.url_name %}active{% endif %}">
               <i class="bi bi-building"></i> Salas de juego
             </a>
@@ -50,10 +53,6 @@
             </a>
             <a href="{% url 'reclamaciones:usuarios' %}" class="{% if 'usuario' in request.resolver_match.url_name %}active{% endif %}">
               <i class="bi bi-people"></i> Usuarios
-            </a>
-            <div class="pnav__drop-divider"></div>
-            <a href="{% url 'reclamaciones:configuracion' %}" class="{% if request.resolver_match.url_name == 'configuracion' or request.resolver_match.url_name == 'test_correo' %}active{% endif %}">
-              <i class="bi bi-gear"></i> General / Correo
             </a>
           </div>
         </div>
@@ -111,10 +110,10 @@
       <a href="{% url 'reclamaciones:lista' %}"><i class="bi bi-inbox"></i> Reclamos</a>
       {% if request.user.is_superuser %}
       <span class="pnav__mobile-section">Configuración</span>
+      <a href="{% url 'reclamaciones:empresas' %}"><i class="bi bi-briefcase"></i> Empresas</a>
       <a href="{% url 'reclamaciones:salas' %}"><i class="bi bi-building"></i> Salas de juego</a>
       <a href="{% url 'reclamaciones:feriados' %}"><i class="bi bi-calendar-x"></i> Feriados</a>
       <a href="{% url 'reclamaciones:usuarios' %}"><i class="bi bi-people"></i> Usuarios</a>
-      <a href="{% url 'reclamaciones:configuracion' %}"><i class="bi bi-gear"></i> General / Correo</a>
       {% endif %}
       <span class="pnav__mobile-section">Cuenta</span>
       <a href="{% url 'reclamaciones:consulta' %}" target="_blank"><i class="bi bi-globe2"></i> Ver sitio público</a>

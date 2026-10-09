@@ -1,0 +1,45 @@
+{% extends "base_panel.html" %}
+{% block title %}Empresas{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Empresas</h1>
+    <p class="text-muted">Gestione las empresas operadoras y su configuración SMTP.</p>
+  </div>
+  <a href="{% url 'reclamaciones:empresa_nueva' %}" class="btn btn--primary"><i class="bi bi-plus-lg"></i> Nueva empresa</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Nombre comercial</th><th>RUC</th><th>Razón social</th><th>Salas</th><th>SMTP</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for e in items %}
+      <tr>
+        <td><strong>{{ e.nombre_comercial }}</strong></td>
+        <td><code>{{ e.ruc }}</code></td>
+        <td>{{ e.razon_social }}</td>
+        <td>{{ e.total_salas }}</td>
+        <td>
+          {% if e.email_host %}
+            <span class="badge badge--success">Configurado</span>
+          {% else %}
+            <span class="badge badge--muted">Consola</span>
+          {% endif %}
+        </td>
+        <td class="td-actions">
+          <a href="{% url 'reclamaciones:empresa_editar' e.pk %}" class="btn btn--outline btn--sm"><i class="bi bi-pencil"></i> Editar</a>
+          <form method="post" action="{% url 'reclamaciones:empresa_eliminar' e.pk %}" onsubmit="return confirm('¿Eliminar empresa {{ e.nombre_comercial }}?')">
+            {% csrf_token %}
+            <button class="btn btn--danger btn--sm" type="submit"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="td-empty">No hay empresas registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
